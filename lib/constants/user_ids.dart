@@ -1,2 +1,2 @@
-const myUserId = "monic";
-const partnerUserId = "kurtis";
+const myUserId = "thisDeviceID";
+const partnerUserId = "partnerDeviceID";
