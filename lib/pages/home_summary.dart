@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/home_summary_card.dart';
+import '../constants/user_ids.dart'
+
+class HomeSummaryScreen extends StatefulWidget {
+  const HomeSummaryScreen({super.key});
+
+  @override
+  State<HomeSummaryScreen> createState() => _HomeSummaryScreenState();
+}
+
+class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
+  double myMood = 0;
+  String? myStatus;
+  DateTime? myUpdated;
+
+  double theirMood = 0;
+  String? theirStatus;
+  DateTime? theirUpdated;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMoodSummaries();
+  }
+
+  Future<void> _loadMoodSummaries() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      myMood = prefs.getDouble('mood') ?? 0.0;
+      theirMood = prefs.getDouble('partner_mood') ?? 0.0;
+
+      myStatus = prefs.getString('moodStatus_me');
+      theirStatus = prefs.getString('moodStatus_partner');
+
+      final myTimeStr = prefs.getString('lastMoodUpdateTime');
+      final theirTimeStr = prefs.getString('partnerLastUpdateTime');
+      myUpdated = myTimeStr != null ? DateTime.tryParse(myTimeStr) : null;
+      theirUpdated = theirTimeStr != null ? DateTime.tryParse(theirTimeStr) : null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Mood Overview")),
+      body: Padding(
+        padding: const EdgeInsets.all(16)
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            moodSummaryCard('me', 'placeholdername', myMood, myStatus, myUpdated),
+            const SizedBox(height: 20)
+            moodSummaryCard('partner', 'theirplaceholdername', theirMood, theirStatus, theirUpdated),
+          ],
+        ),
+      ),
+    );
+  }
+}

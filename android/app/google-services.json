@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "609217950576",
+    "project_id": "loveosapp",
+    "storage_bucket": "loveosapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609217950576:android:8b4faaa2d1636c795ed5b5",
+        "android_client_info": {
+          "package_name": "com.elyxproject.life_engine"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtnF9b4-IbnYNR9e4u-1G-67Dr50DtFd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
