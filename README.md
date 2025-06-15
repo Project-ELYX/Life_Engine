@@ -1,16 +1,21 @@
-# chaos_engine
+# Life Engine
+An insanely complex life & relationship dashboard because I just get pissed off when I want a feature that doesn't exist.
 
-A new Flutter project.
+## Yup, This Is Hell
 
-## Getting Started
+=== Current features:
+-Includes Firebase implementation for interdevice connectivity and account creation.\
+-Editable Mood Status Board
+-General Homepage
+-Fancy ass graphics that definitely weren't necessary
+-Per-Profile thematic arrangement
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+=== Planned features:
+-GPS tracking (life360's fruity older cousin)
+-Games
+-Likes/Dislikes in multiple categories
+-Shared Calendar
+-Encrypted messaging and photo sharing services
+-Several "psychological/other" profilers (potentially with quizzes to complete)
+-Per-profile theme customization expansion
+-Health tracking/reporting with WearOS (shared to partner voluntarily, will have option to disable)
