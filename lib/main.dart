@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart'
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; //Auto-Generated
-import '../services/firestore_service.dart'
-import 'package:cloud_firestore/cloud_firestore.dart'
-import '../constants/user_ids.dart'
+import '../services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import '../constants/user_ids.dart';
 import 'themes/theme_manager.dart';
 import 'pages/mood_dashboard.dart';
+
+import 'Life_EngineApp.dart';
 
 
 void main() async {
@@ -17,7 +20,23 @@ void main() async {
   runApp(const Life_EngineApp)
 }
 
-void main() => runApp(const Life_EngineApp());
+void main () async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
+
+  // Token Retrieval
+  final token = await messaging.getToken();
+  print("FCM Token: $token");
+  await FirestoreServices.saveUserToken('me', token); // Or 'partner'
+
+  runApp(const Life_EngineApp());
+}
 
 class Life_EngineApp extends StatelessWidget {
   const Life_EngineApp({super.key});
@@ -25,7 +44,7 @@ class Life_EngineApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LoveOS',
+      title: 'Life_Engine',
       theme: ThemeData.dark(),
       home: const HomeSummaryScreen(),
       debugShowCheckedModeBanner: false,

@@ -10,7 +10,62 @@ class MoodDashboard extends StatefulWidget {
   State<MoodDashboard> createState() => _MoodDashboardState();
 }
 
+
 class _MoodDashboardState extends State<MoodDashboard> {
+  bool isEditMode = true;
+
+  Map<String, double> moods = {
+    'anger': 0.0,
+    'happiness': 0.0,
+    'sadness': 0.0,
+    'love': 0.0,
+    'joking': 0.0,
+  };
+
+  Map<String, String> notes = {
+    'anger': '',
+    'happiness': '',
+    'sadness': '',
+    'love': '',
+    'joking': '',
+  };
+
+  String status = 'Unknown';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialMoodValues();
+  }
+
+  Future<void> _loadInitialMoodValues() async {
+    for (var mood in moods.keys) {
+      moods[mood] = await MoodStorage.getMood(mood) ?? 0.0;
+      notes[mood] = await MoodStorage.getNote(mood) ?? '';
+    }
+    status = await MoodStorage.getMoodStatus('me') ?? 'Unknown';
+    setState(() {});
+  }
+
+  Future<void> _saveAllToFirestore() async {
+    final now = DateTime.now();
+    const userId = 'me';
+
+    await MoodStorage.saveMoodStatus(userId);
+    await MoodStorage.saveLastUpdateTime(now);
+
+    await FirestoreServices.saveMoodData(
+      userId: userId,
+      moods: Map.fromEntries(moods.entries.map((e) => MapEntry(e.key.toLowerCase(), e.value))),
+      notes: Map.fromEntries(notes.entries.map((e) => MapEntry(e.key.toLowerCase(), e.value))),
+      status: status,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Moods synced to Firestore ✔️')),
+    );
+  }
+
   bool isEditMode = true;
 
   double anger = 0;

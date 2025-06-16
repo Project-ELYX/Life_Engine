@@ -23,3 +23,8 @@ import 'package:flutter/cupertino.dart';class FirestoreServices {
         final doc = await _db.collection('moods').doc(userId).get();
       }
     }
+
+    static Future<void> saveUserToken(String userId, String token) async {
+      final usersRef = _db.collection('users');
+      await usersRef.doc(userId).set({'fcmToken': token}, SetOptions(merge: true));
+    }
