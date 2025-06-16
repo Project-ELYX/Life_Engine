@@ -120,15 +120,27 @@ class _MoodDashboardState extends State<MoodDashboard> {
                       isEditMode
                           ? Slider(
                         value: moods[mood]!,
-                        onChanged: (value) {
+                        onChanged: (value) async {
                           setState(() {
                             moods[mood] = value;
-                            MoodStorage.saveMood(mood.toLowerCase(), value);
-
-                            final now = DateTime.now();
-                            MoodStorage.saveLastUpdateTime(now);
                           });
-                        },
+
+                          final now = DateTime.now();
+                          final userId = 'me'; // or 'partner' depending on the device
+
+                          await MoodStorage.saveMood(mood.toLowerCase(), value);
+                          await MoodStorage.saveLastUpdateTime(now);
+
+                          final note = await MoodStorage.getNote(mood.toLowerCase()) ?? '';
+                          final status = await MoodStorage.getMoodStatus(userId) ?? '';
+
+                          await FirestoreServices.saveMoodData(
+                            userId,
+                            {mood.toLowerCase(): value};
+                            {mood.toLowerCase(): note};
+                            status,
+                          );
+                        }
                         min: 0,
                         max: 100,
                         divisions: 10,
