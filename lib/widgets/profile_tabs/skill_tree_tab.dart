@@ -1,100 +1,165 @@
-// lib/pages/profile_screen.dart
 import 'package:flutter/material.dart';
-import '../widgets/profile_tabs/general_tab.dart';
-import '../widgets/profile_tabs/likes_tab.dart';
-import '../widgets/profile_tabs/dislikes_tab.dart';
-import '../widgets/profile_tabs/skill_tree_tab.dart';
-import '../widgets/profile_tabs/x_rated/nsfw_mood_tab.dart';
-import '../widgets/profile_tabs/x_rated/experience_tree_tab.dart';
-import '../widgets/profile_tabs/x_rated/identified_roles_tab.dart';
-import '../widgets/profile_tabs/x_rated/play_preferences_tab.dart';
-import '../widgets/profile_tabs/x_rated/hard_limits_tab.dart';
+import 'package:uuid/uuid.dart';
+import '../../../models/skill_node.dart';
+import '../../../services/skill_tree_service.dart';
+import '../../../constants/user_ids.dart'; // for USER_ID or partner ID
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class SkillTreeTab extends StatefulWidget {
+  const SkillTreeTab({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<SkillTreeTab> createState() => _SkillTreeTabState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool isXRatedMode = false;
-
-  final List<Tab> standardTabs = const [
-    Tab(text: 'Mood'),
-    Tab(text: 'Likes'),
-    Tab(text: 'Dislikes'),
-    Tab(text: 'Skills'),
-  ];
-
-  final List<Tab> xRatedTabs = const [
-    Tab(text: 'NSFW Mood'),
-    Tab(text: 'Roles'),
-    Tab(text: 'Preferences'),
-    Tab(text: 'Limits'),
-    Tab(text: 'Experience'),
-  ];
+class _SkillTreeTabState extends State<SkillTreeTab> {
+  List<SkillNode> nodes = [];
+  bool isEditMode = false;
+  final uuid = const Uuid();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: standardTabs.length, vsync: this);
+    _loadSkillTree();
   }
 
-  void _toggleMode() {
-    setState(() {
-      isXRatedMode = !isXRatedMode;
-      _tabController.dispose();
-      _tabController = TabController(
-        length: isXRatedMode ? xRatedTabs.length : standardTabs.length,
-        vsync: this,
-      );
-    });
+  Future<void> _loadSkillTree() async {
+    final data = await SkillTreeService.loadSkillTree(USER_ID);
+    setState(() => nodes = data);
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void _toggleEditMode() {
+    setState(() => isEditMode = !isEditMode);
+  }
+
+  Future<void> _addSkillNode({String? parentId}) async {
+    final controller = TextEditingController();
+    String emoji = '🌱';
+    Color color = Colors.blue;
+
+    final result = await showDialog<SkillNode>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(parentId == null ? 'Add Main Skill' : 'Add Subskill'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(labelText: 'Skill name'),
+            ),
+            const SizedBox(height: 10),
+            Text('Pick emoji and color (placeholder for now)'),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final node = SkillNode(
+                id: uuid.v4(),
+                name: controller.text.trim(),
+                emoji: emoji,
+                colorHex: '#${color.value.toRadixString(16)}',
+                parentId: parentId,
+              );
+              Navigator.pop(context, node);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      await SkillTreeService.saveSkillNode(USER_ID, result);
+      _loadSkillTree();
+    }
+  }
+
+  Future<void> _deleteNode(SkillNode node) async {
+    await SkillTreeService.deleteSkillNode(USER_ID, node.id);
+    _loadSkillTree();
   }
 
   @override
   Widget build(BuildContext context) {
-    final tabs = isXRatedMode ? xRatedTabs : standardTabs;
+    final mainSkills = nodes.where((n) => n.parentId == null).toList();
+    final subskills = nodes.where((n) => n.parentId != null).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isXRatedMode ? 'X-Rated Profile' : 'Profile'),
-        actions: [
-          IconButton(
-            icon: Icon(isXRatedMode ? Icons.lock_open : Icons.lock),
-            onPressed: _toggleMode,
-            tooltip: isXRatedMode ? 'Exit X-Rated Mode' : 'Enter X-Rated Mode',
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: tabs,
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: Icon(isEditMode ? Icons.visibility : Icons.edit),
+              tooltip: isEditMode ? 'View Mode' : 'Edit Mode',
+              onPressed: _toggleEditMode,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Add Main Skill',
+              onPressed: () => _addSkillNode(),
+            ),
+          ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: isXRatedMode
-            ? const [
-          NSFWMoodTab(),
-          IdentifiedRolesTab(),
-          PlayPreferencesTab(),
-          HardLimitsTab(),
-          ExperienceTreeTab(),
-        ]
-            : const [
-          GeneralTab(),
-          LikesTab(),
-          DislikesTab(),
-          SkillTreeTab(),
-        ],
-      ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: mainSkills.map((main) {
+              final children = subskills.where((s) => s.parentId == main.id).toList();
+
+              return Card(
+                color: main.color.withOpacity(0.15),
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text('${main.emoji} ${main.name}', style: const TextStyle(fontSize: 18)),
+                          if (isEditMode)
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteNode(main),
+                            ),
+                          if (isEditMode)
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              tooltip: 'Add Subskill',
+                              onPressed: () => _addSkillNode(parentId: main.id),
+                            ),
+                        ],
+                      ),
+                      if (children.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: children.map((sub) {
+                              return Row(
+                                children: [
+                                  Text('${sub.emoji} ${sub.name}'),
+                                  if (isEditMode)
+                                    IconButton(
+                                      icon: const Icon(Icons.delete),
+                                      onPressed: () => _deleteNode(sub),
+                                    ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 }
