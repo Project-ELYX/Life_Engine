@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart'
 import 'firebase_options.dart'; //Auto-Generated
+import '../services/firestore_service.dart'
+import 'package:cloud_firestore/cloud_firestore.dart'
 import '../constants/user_ids.dart'
 import 'themes/theme_manager.dart';
 import 'pages/mood_dashboard.dart';
@@ -74,6 +76,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.setStringList('dislikes', dislikes);
     await prefs.setStringList('skills', skills);
   }
+
+  final moodData = {
+    'anger': currentAngerValue,
+    'happiness': currentHappinessValue,
+    'sadness': currentSadnessValue,
+    'love': currentLoveValue,
+    'joking': currentJokingValue,
+    'generalStatus': currentGeneralStatusString
+  };
+
+  MoodSyncService().updateMood("me", moodData)
 
   void _addItem(List<String> list, String label, String hint, Function(List<String>) onUpdate) {
     final controller = TextEditingController();
