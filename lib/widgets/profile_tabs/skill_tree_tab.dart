@@ -12,14 +12,29 @@ class SkillTreeTab extends StatefulWidget {
 }
 
 class _SkillTreeTabState extends State<SkillTreeTab> {
+  with SingleTickerProviderStateMixin {
   List<SkillNode> nodes = [];
   bool isEditMode = false;
   final uuid = const Uuid();
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnim;
 
   @override
-  void initState() {
+  void dispose() {
+  _pulseController.dispose();
+  super.dispose();
+  }
+  
     super.initState();
     _loadSkillTree();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _pulseAnim = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   Future<void> _loadSkillTree() async {
@@ -34,39 +49,72 @@ class _SkillTreeTabState extends State<SkillTreeTab> {
   Future<void> _addSkillNode({String? parentId}) async {
     final controller = TextEditingController();
     String emoji = '🌱';
-    Color color = Colors.blue;
+    Color selectedColor = Colors.blue;
 
     final result = await showDialog<SkillNode>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(parentId == null ? 'Add Main Skill' : 'Add Subskill'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(labelText: 'Skill name'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(parentId == null ? 'Add Main Skill' : 'Add Subskill'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(labelText: 'Skill name'),
+                ),
+                const SizedBox(height: 10),
+                Text('Pick emoji and color:'),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Pick a color'),
+                        content: SingleChildScrollView(
+                          child: BlockPicker(
+                            pickerColor: selectedColor,
+                            onColorChanged: (c) => setState(() => selectedColor = c),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: selectedColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black26),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text('Pick emoji and color (placeholder for now)'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final node = SkillNode(
+                  id: uuid.v4(),
+                  name: controller.text.trim(),
+                  emoji: emoji,
+                  colorHex: '#${selectedColor.value.toRadixString(16).padLeft(8, '0')}',
+                  parentId: parentId,
+                );
+                Navigator.pop(context, node);
+              },
+              child: const Text('Add'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final node = SkillNode(
-                id: uuid.v4(),
-                name: controller.text.trim(),
-                emoji: emoji,
-                colorHex: '#${color.value.toRadixString(16)}',
-                parentId: parentId,
-              );
-              Navigator.pop(context, node);
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
 
@@ -74,11 +122,6 @@ class _SkillTreeTabState extends State<SkillTreeTab> {
       await SkillTreeService.saveSkillNode(USER_ID, result);
       _loadSkillTree();
     }
-  }
-
-  Future<void> _deleteNode(SkillNode node) async {
-    await SkillTreeService.deleteSkillNode(USER_ID, node.id);
-    _loadSkillTree();
   }
 
   @override
@@ -110,7 +153,7 @@ class _SkillTreeTabState extends State<SkillTreeTab> {
               final children = subskills.where((s) => s.parentId == main.id).toList();
 
               return Card(
-                color: main.color.withOpacity(0.15),
+                color: main.color.withAlpha(0.2 * 255),
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -139,16 +182,11 @@ class _SkillTreeTabState extends State<SkillTreeTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: children.map((sub) {
-                              return Row(
-                                children: [
-                                  Text('${sub.emoji} ${sub.name}'),
-                                  if (isEditMode)
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () => _deleteNode(sub),
-                                    ),
-                                ],
-                              );
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+
+                              )
                             }).toList(),
                           ),
                         ),
