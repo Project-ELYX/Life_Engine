@@ -1,21 +1,20 @@
-import 'package:flutter/material.dart';
-
 class SkillNode {
   final String id;
   final String name;
   final String emoji;
   final String colorHex;
-  final String? parentId; //null means it's a main skill
+  final String? parentId;
+  int? order;            // ← new
 
   SkillNode({
     required this.id,
     required this.name,
-    required this.emoji,
-    required this.colorHex = '#FFFFFF',
+    this.emoji = '🌱',
+    this.colorHex = '#FFFFFF',
     this.parentId,
+    this.order,          // ← new
   });
 
-  // Firestore save function
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -23,20 +22,20 @@ class SkillNode {
       'emoji': emoji,
       'colorHex': colorHex,
       'parentId': parentId,
+      'order': order,    // ← new
     };
   }
 
-  // Firestore Load Function
-factory SkillNode.fromMap(Map<String, dynamic> map) {
+  factory SkillNode.fromMap(Map<String, dynamic> map) {
     return SkillNode(
       id: map['id'],
       name: map['name'],
-      emoji: map['emoji'],
-      colorHex: map['colorHex'],
+      emoji: map['emoji'] ?? '🌱',
+      colorHex: map['colorHex'] ?? '#FFFFFF',
       parentId: map['parentId'],
-    };
+      order: map['order'] != null ? (map['order'] as num).toInt() : null, // ← new
+    );
   }
 
   Color get color => Color(int.parse(colorHex.replaceFirst('#', '0xff')));
 }
-
