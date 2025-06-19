@@ -27,7 +27,7 @@ class MoodStorage {
   }
 
   static Future<DateTime?> getLastUpdateTime() async {
-    final.prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final timeStr = prefs.getString('lastMoodUpdateTime');
     if (timeStr == null) return null;
     return DateTime.tryParse(timeStr);
@@ -35,7 +35,7 @@ class MoodStorage {
 
   static Future<void> saveMoodStatus(String userId, String status) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('moodStatus_$userid', status); //Use "me" or "partner" as $userId
+    await prefs.setString('moodStatus_$userId', status); //Use "me" or "partner" as $userId
   }
 
   static Future<String?> getMoodStatus(String userId) async {
