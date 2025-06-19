@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_forestore.dart'
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MoodFirestoreService {
   final _db = FirebaseFirestore.instance;
@@ -11,7 +11,7 @@ class MoodFirestoreService {
     });
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamics>>> streamMood(String userId) {
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamMood(String userId) {
     return _db.collection('moods').doc(userId).snapshots();
   }
 }

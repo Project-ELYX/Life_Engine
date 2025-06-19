@@ -88,12 +88,12 @@ void _toggleMode() async {
       appBar: AppBar(
         title: Text(isXRatedMode ? 'X-Rated Profile' : 'Profile'),
         actions: [
-          if (widget.userId == USER_ID)
-            IconButton(''
-                icon: Icon(isXRatedMode ? Icons.lock_open : Icons.lock),
-                onPressed: _toggleMode,
-                tooltip: isXRatedMode ? 'Exit X-Rated Mode' : 'Enter X-Rated Mode',
-          ),
+          if (widget.userId == myUserId)
+            IconButton(
+              icon: Icon(isXRatedMode ? Icons.lock_open : Icons.lock),
+              onPressed: _toggleMode,
+              tooltip: isXRatedMode ? 'Exit X-Rated Mode' : 'Enter X-Rated Mode',
+            ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -120,4 +120,5 @@ void _toggleMode() async {
     );
   }
 }
+
 

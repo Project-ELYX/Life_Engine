@@ -36,3 +36,7 @@ final ThemeData calmBlueTheme = ThemeData(
     trackHeight: 4.0,
   ),
 );
+
+// Basic light and dark themes used by the app
+final ThemeData lightTheme = ThemeData.light();
+final ThemeData darkTheme = ThemeData.dark();

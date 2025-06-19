@@ -5,7 +5,7 @@ import 'pages/home_summary.dart';
 import 'themes/theme_manager.dart';
 
 void main() async {
-  WidgetFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -23,7 +23,7 @@ class LifeEngineApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode..system,
+      themeMode: ThemeMode.system,
       home: const HomeSummaryScreen(),
     );
   }

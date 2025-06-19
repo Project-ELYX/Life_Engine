@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/home_summary_card.dart';
-import '../constants/user_ids.dart'
+import '../constants/user_ids.dart';
 
 class HomeSummaryScreen extends StatefulWidget {
   const HomeSummaryScreen({super.key});
@@ -46,8 +46,8 @@ class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
           : null;
       });
     } catch (e) {
-      print("Error loading from Firestore: $e")
-          // Fallback to SharedPreferences if Firestore fails
+      print("Error loading from Firestore: $e");
+      // Fallback to SharedPreferences if Firestore fails
       setState(() {
         myMood = prefs.getDouble('mood') ?? 0.0;
         theirMood = prefs.getDouble('partner_mood') ?? 0.0;
@@ -68,12 +68,12 @@ class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Mood Overview")),
       body: Padding(
-        padding: const EdgeInsets.all(16)
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             moodSummaryCard('me', 'placeholdername', myMood, myStatus, myUpdated),
-            const SizedBox(height: 20)
+            const SizedBox(height: 20),
             moodSummaryCard('partner', 'theirplaceholdername', theirMood, theirStatus, theirUpdated),
           ],
         ),

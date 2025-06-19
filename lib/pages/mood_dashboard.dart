@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/mood_storage.dart';
 import '../widgets/animated_mood_slider.dart';
-import '../constants/user_ids.dart'
+import '../constants/user_ids.dart';
 
 class MoodDashboard extends StatefulWidget {
   const MoodDashboard({super.key});
@@ -10,62 +10,7 @@ class MoodDashboard extends StatefulWidget {
   State<MoodDashboard> createState() => _MoodDashboardState();
 }
 
-
 class _MoodDashboardState extends State<MoodDashboard> {
-  bool isEditMode = true;
-
-  Map<String, double> moods = {
-    'anger': 0.0,
-    'happiness': 0.0,
-    'sadness': 0.0,
-    'love': 0.0,
-    'joking': 0.0,
-  };
-
-  Map<String, String> notes = {
-    'anger': '',
-    'happiness': '',
-    'sadness': '',
-    'love': '',
-    'joking': '',
-  };
-
-  String status = 'Unknown';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInitialMoodValues();
-  }
-
-  Future<void> _loadInitialMoodValues() async {
-    for (var mood in moods.keys) {
-      moods[mood] = await MoodStorage.getMood(mood) ?? 0.0;
-      notes[mood] = await MoodStorage.getNote(mood) ?? '';
-    }
-    status = await MoodStorage.getMoodStatus('me') ?? 'Unknown';
-    setState(() {});
-  }
-
-  Future<void> _saveAllToFirestore() async {
-    final now = DateTime.now();
-    const userId = 'me';
-
-    await MoodStorage.saveMoodStatus(userId);
-    await MoodStorage.saveLastUpdateTime(now);
-
-    await FirestoreServices.saveMoodData(
-      userId: userId,
-      moods: Map.fromEntries(moods.entries.map((e) => MapEntry(e.key.toLowerCase(), e.value))),
-      notes: Map.fromEntries(notes.entries.map((e) => MapEntry(e.key.toLowerCase(), e.value))),
-      status: status,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Moods synced to Firestore ✔️')),
-    );
-  }
-
   bool isEditMode = true;
 
   double anger = 0;
@@ -175,27 +120,15 @@ class _MoodDashboardState extends State<MoodDashboard> {
                       isEditMode
                           ? Slider(
                         value: moods[mood]!,
-                        onChanged: (value) async {
+                        onChanged: (value) {
                           setState(() {
                             moods[mood] = value;
+                            MoodStorage.saveMood(mood.toLowerCase(), value);
+
+                            final now = DateTime.now();
+                            MoodStorage.saveLastUpdateTime(now);
                           });
-
-                          final now = DateTime.now();
-                          final userId = 'me'; // or 'partner' depending on the device
-
-                          await MoodStorage.saveMood(mood.toLowerCase(), value);
-                          await MoodStorage.saveLastUpdateTime(now);
-
-                          final note = await MoodStorage.getNote(mood.toLowerCase()) ?? '';
-                          final status = await MoodStorage.getMoodStatus(userId) ?? '';
-
-                          await FirestoreServices.saveMoodData(
-                            userId,
-                            {mood.toLowerCase(): value};
-                            {mood.toLowerCase(): note};
-                            status,
-                          );
-                        }
+                        },
                         min: 0,
                         max: 100,
                         divisions: 10,
@@ -232,3 +165,4 @@ class _MoodDashboardState extends State<MoodDashboard> {
     );
   }
 }
+
