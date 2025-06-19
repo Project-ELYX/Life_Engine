@@ -1,0 +1,19 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "Life Engine Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "extensions": [
+    "Dart-Code.flutter",
+    "dart-code.dart-code",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig"
+  ],
+  "postCreateCommand": "flutter pub get",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace"
+}
